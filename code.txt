@@ -1,0 +1,32 @@
+import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+import torch
+import torch.nn as nn
+df = pd.read_csv("data_feature_engineered.csv")
+print(df)
+label_cols = ['cohesion', 'syntax', 'vocabulary', 'phraseology', 'grammar', 'conventions']
+feature_cols = df.columns.difference(['text_id', 'full_text'] + label_cols).tolist()
+df = df.dropna()
+X = df[feature_cols]
+y = df['cohesion']
+
+# Train/Test-Split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Model training
+model = RandomForestRegressor(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+
+class MCRMSELoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.mse = nn.MSELoss(reduction='none')
+
+    def forward(self, preds, targets):
+        # preds/targets: [batch_size, num_targets]
+        colwise_mse = self.mse(preds, targets).mean(dim=0)  # Mittelwert pro Spalte
+        colwise_rmse = torch.sqrt(colwise_mse + 1e-8)       # RMSE pro Ziel
+        return colwise_rmse.mean()                          # Mittelwert über Ziele
