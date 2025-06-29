@@ -172,3 +172,9 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Bert Modell
+
+uncased_L-12_H-768_A-12*
+Bert-Base-uncased/*
+mein_bert_model*
